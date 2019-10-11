@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-dev
+spec:
+  selector:
+    matchLabels:
+      app: hello-dev
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello-dev
+    spec:
+      containers:
+        - name: hello-dev
+          image: hello:1.0
+          env:
+            - name: NAME
+              value: 'Dev'
+          ports:
+            - containerPort: 8080

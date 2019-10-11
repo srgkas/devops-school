@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-ops
+spec:
+  selector:
+    matchLabels:
+      app: hello-ops
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello-ops
+    spec:
+      containers:
+        - name: hello-ops
+          image: hello:1.0
+          env:
+            - name: NAME
+              value: 'Ops'
+          ports:
+            - containerPort: 8080
