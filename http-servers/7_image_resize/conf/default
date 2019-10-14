@@ -1,0 +1,53 @@
+proxy_cache_path /var/nginx/cache levels=1:2 keys_zone=images:10m inactive=24h max_size=5G;
+limit_req_zone $binary_remote_addr zone=resize_limit:10m rate=5r/m;
+
+server {
+    server_name localhost;
+
+    proxy_intercept_errors on;
+    proxy_cache images;
+    proxy_cache_valid 200 24h;
+    proxy_cache_valid 404 1m;
+
+    location / {
+        proxy_pass http://storage/storage/$uri;
+    }
+
+    location /img {
+
+        proxy_pass http://resizer;
+    }
+}
+
+server {
+    listen 8080;
+    server_name localhost;
+
+    limit_req zone=resize_limit;
+    limit_req_status 429;
+
+    location ~ ^/img/(?<w>\d+|-)x(?<h>\d+|-)/image\.(?<ext>jpg|gif|png)$ {
+        proxy_pass http://storage/storage/image.$ext;
+
+        image_filter resize $w $h;
+        image_filter_buffer 5M;
+    }
+}
+
+server {
+    listen 8081;
+    server_name localhost;
+    root /images;
+
+    location ~ ^/storage/image\.(?<ext>jpg|gif|png)$ {
+        rewrite ^.*$ /image.$ext;
+    }
+}
+
+upstream resizer {
+    server localhost:8080;
+}
+
+upstream storage {
+    server localhost:8081;
+}
